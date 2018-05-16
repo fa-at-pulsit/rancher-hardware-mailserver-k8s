@@ -1,0 +1,31 @@
+{{- if .Values.rainloop.ingress.enabled }}
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: {{ template "mailserver.rainloop.fullname" . }}-ingress
+  labels:
+    app: {{ template "mailserver.rainloop.fullname" . }}-ingress
+  annotations:
+    {{- if .Values.rainloop.ingress.tls }}
+    ingress.kubernetes.io/secure-backends: "true"
+    {{- end }}
+    {{- range $key, $value := .Values.rainloop.ingress.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+spec:
+  rules:
+  - host: rainloop.{{ .Values.mailserver.MAILSERVER_DOMAIN }}
+#  - host: {{ .Values.rainloop.ingress.host }}
+    http:
+      paths:
+        - path: {{ default "/" .Values.rainloop.ingress.path }}
+          backend:
+            serviceName: {{ template "mailserver.rainloop.fullname" . }}
+            servicePort: 8888
+{{- if .Values.rainloop.ingress.tls }}
+  tls:
+  - hosts:
+    - {{ .Values.rainloop.ingress.host }}
+    secretName: {{ .Values.rainloop.ingress.tlsSecret }}
+{{- end }}
+{{- end }}

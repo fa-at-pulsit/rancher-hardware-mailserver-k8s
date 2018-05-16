@@ -1,0 +1,56 @@
+{{- if .Values.postfixadmin.enabled -}}
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: {{ template "mailserver.postfixadmin.fullname" . }}
+  labels:
+    app: {{ template "mailserver.postfixadmin.name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    component: "{{ .Values.postfixadmin.name }}"
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+spec:
+  template:
+    metadata:
+      labels:
+        app: {{ template "mailserver.postfixadmin.name" . }}
+    spec:
+      containers:
+      - name: {{ template "mailserver.postfixadmin.fullname" . }}
+        image: "{{ .Values.postfixadmin.image.repository }}:{{ .Values.postfixadmin.image.tag }}"
+        env:
+          - name: UID
+            value: {{default "991" .Values.postfixadmin.UID | quote }}
+          - name: GID
+            value: {{default "991" .Values.postfixadmin.GID | quote }}
+          - name: DBDRIVER
+            value: {{default "mysql" .Values.postfixadmin.DBDRIVER | quote }}
+          - name: DBHOST
+            # value: {{default "mariadb" .Values.postfixadmin.DBHOST | quote }}
+            value: {{ template "mailserver.mariadb.fullname" . }}
+          - name: DBPORT
+            value: {{default "3306" .Values.postfixadmin.DBPORT | quote }}
+          - name: DBUSER
+            value: {{ .Values.mailserver.DBUSER | quote }}
+          - name: DBNAME
+            value: {{ .Values.mailserver.DBNAME | quote }}
+          - name: DBPASS
+            valueFrom:
+              secretKeyRef:
+                name: {{ template "mailserver.mariadb.fullname" . }}
+                key: mariadb-password
+          - name: SMTPHOST
+            value: {{ template "mailserver.fullname" . }}
+          - name: DOMAIN
+            value: {{ .Values.mailserver.MAILSERVER_DOMAIN | quote }}
+          - name: ENCRYPTION
+            value: {{default "dovecot:SHA512-CRYPT" .Values.postfixadmin.ENCRYPTION | quote }}
+          - name: PASSVAL_MIN_LEN
+            value: {{default 5 .Values.postfixadmin.PASSVAL_MIN_LEN | quote }}
+          - name: PASSVAL_MIN_CHAR
+            value: {{default 3 .Values.postfixadmin.PASSVAL_MIN_CHAR | quote }}
+          - name: PASSVAL_MIN_DIGIT
+            value: {{default 2 .Values.postfixadmin.PASSVAL_MIN_DIGIT | quote }}
+        ports:
+        - containerPort: 8888
+{{- end }}

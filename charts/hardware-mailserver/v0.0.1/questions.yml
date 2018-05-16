@@ -1,0 +1,406 @@
+categories:
+- Database
+- NoSQL
+questions:
+- variable: defaultImage
+  default: "true"
+  description: "Use default Docker images"
+  label: Use Default Images
+  type: boolean
+  show_subquestion_if: false
+  group: "Container Images"
+  subquestions:
+  - variable: mailserver.image.repository
+    default: "hardware/mailserver"
+    description: "Mailserver image name"
+    type: string
+    label: Mailserver Image Name
+  - variable: mailserver.image.tag
+    default: "1.1-stable"
+    description: "Mailserver image tag"
+    type: string
+    label: Image Tag
+  - variable: postfixadmin.image.repository
+    default: "hardware/postfixadmin"
+    description: "Postfixadmin image name"
+    type: string
+    label: Postfixadmin Image Name
+    show_if: "postfixadmin.enabled=true"
+  - variable: postfixadmin.image.tag
+    default: "latest"
+    description: "Postfixadmin image tag"
+    type: string
+    label: Postfixadmin Image Tag
+    show_if: "postfixadmin.enabled=true"
+  - variable: rainloop.image.repository
+    default: "hardware/rainloop"
+    description: "Rainloop image name"
+    type: string
+    label: Rainloop Image Name
+    show_if: "rainloop.enabled=true"
+  - variable: rainloop.image.tag
+    default: "latest"
+    description: "Rainloop image tag"
+    type: string
+    label: Rainloop Image Tag
+    show_if: "rainloop.enabled=true"
+
+# mailserver configurations
+- variable: mailserver.VOLUMES_ROOT_PATH
+  label: Docker volumes root path (required)
+  description: |
+    "Set this to the path where the mailserver data and configuration are stored"
+  type: string
+  required: true
+  default: "/mnt/docker/mailserver"
+
+- variable: mailserver.BIND_ADDRESS
+  label: Mailserver bind address (required)
+  description: |
+    "Address where listening ports should bind"
+  type: string
+  required: true
+  default: "0.0.0.0"
+
+- variable: mailserver.STORAGE_DRIVER
+  label: Storage Driver
+  description: |
+    "Set the storage driver if needed, e.g. rancher-nfs"
+  type: string
+
+- variable: mailserver.MAILSERVER_FQDN
+  label: Mailserver FQDN (required)
+  description: |
+    "Your fully qualified domain name, e.g. mail.domain.tld"
+  type: string
+  required: true
+
+- variable: mailserver.MAILSERVER_DOMAIN
+  label: Mailserver domain name (required)
+  description: |
+    "Your domain name, e.g. domain.tld"
+  type: string
+  required: true
+
+- variable: mailserver.MAILSERVER_HOSTNAME
+  default: "mail"
+  label: Mailserver hostname (required)
+  description: |
+    "E.g. if your fqdn is 'mail.domain.tld', your hostname is equal to 'mail'"
+  type: string
+  required: true
+
+- variable: mailserver.DBNAME
+  label: Database name (required)
+  type: string
+  required: true
+  default: "postfix"
+
+- variable: mailserver.DBUSER
+  label: Database username (required)
+  type: string
+  required: true
+  default: "postfix"
+
+- variable: mariadb.mariadbPassword
+  label: Database password (required)
+  type: password
+  required: true
+
+- variable: mariadb.mariadbRootPassword
+  label: MariaDB root password (required)
+  type: password
+  required: true
+
+- variable: mailserver.VMAIL_SUBDIR
+  label: Individual mailbox subdirectory name
+  description: |
+    "This is the mail location subdirectory name, e.g. /var/mail/vhosts/domain.tld/john.doe/$SUBDIR"
+  type: string
+  default: "mail"
+
+- variable: mailserver.PASSWORD_SCHEME
+  label: Passwords encryption scheme
+  description: |
+    "For compatible schemes, read this : https://wiki.dovecot.org/Authentication/PasswordSchemes"
+  type: enum
+  options:
+    - "SHA512-CRYPT"
+    - "SHA256-CRYPT"
+    - "MD5-CRYPT"
+  default: "SHA512-CRYPT"
+
+- variable: mailserver.OPENDKIM_KEY_LENGTH
+  label: Size of your DKIM RSA key pair in bits
+  description: |
+    "Check your domain registrar support to verify that it supports
+    a TXT record long enough for a key larger than 1024 bits."
+  type: enum
+  options:
+    - 1024
+    - 2048
+    - 4096
+  default: 1024
+
+- variable: mailserver.MAILSERVER_ADD_DOMAIN
+  label: Add additional domain names
+  description: |
+    "Add additional domain names to the mailserver separated by commas (needed for dkim keys etc.)"
+  type: string
+
+- variable: mailserver.MAILSERVER_CUSTOM_SSL
+  label: Do you want to enable mailserver custom SSL certificate ?
+  description: |
+    "If yes, your mailserver SSL certificate must be stored in ${VOLUMES_ROOT_PATH}/ssl directory"
+  type: boolean
+  default: false
+
+- variable: mailserver.RELAY_NETWORKS
+  label: Add additional relay networks
+  description: |
+    "Additional IPs or networks the mailserver relays without
+    authentication, e.g. 192.168.0.0/16 172.16.0.0/12 10.0.0.0/8"
+  type: string
+
+- variable: mailserver.RSPAMD_PASSWORD
+  label: Rspamd Password (required)
+  description: |
+    "Rspamd WebUI and controller password"
+  type: password
+  required: true
+
+- variable: mailserver.DISABLE_RSPAMD_MODULE
+  label: List of disabled rspamd modules separated by commas
+  description: |
+    "You can disable any modules listed here : https://rspamd.com/doc/modules/"
+  type: string
+
+- variable: mailserver.DISABLE_CLAMAV
+  label: Do you want to disable ClamAV ?
+  description: |
+    "More information here : https://www.clamav.net/"
+  type: boolean
+  default: false
+
+- variable: mailserver.DISABLE_SIEVE
+  label: Do you want to disable ManageSieve protocol ?
+  description: |
+    "More information here : https://wiki2.dovecot.org/Pigeonhole/ManageSieve"
+  type: boolean
+  default: false
+
+- variable: mailserver.DISABLE_DNS_RESOLVER
+  label: Do you want to disable the local DNS resolver ?
+  description: |
+    "Disable if you have some DNS troubles and DNSSEC lookup issues with the local DNS"
+  type: boolean
+  default: false
+
+- variable: mailserver.DISABLE_GREYLISTING
+  label: Do you want to disable the greylisting policy ?
+  type: boolean
+  default: false
+
+- variable: mailserver.DISABLE_RATELIMITING
+  label: Do you want to disable the ratelimiting policy ?
+  type: boolean
+  default: false
+
+- variable: mailserver.DISABLE_SIGNING
+  label: Do you want to disable DKIM/ARC signing ?
+  type: boolean
+  default: false
+
+- variable: mailserver.ENABLE_POP3
+  label: Do you want to enable POP3 protocol ?
+  type: boolean
+  default: false
+
+- variable: mailserver.ENABLE_ENCRYPTION
+  label: Do you want to enable automatic GPG encryption ?
+  description: |
+    "Please enable this option carefully and only if you know what you are doing."
+  type: boolean
+  default: false
+
+- variable: mailserver.ENABLE_FETCHMAIL
+  label: Do you want to enable fetchmail forwarding ?
+  type: boolean
+  default: false
+
+- variable: mailserver.FETCHMAIL_INTERVAL
+  label: Fetchmail polling interval
+  type: int
+  default: 10
+
+- variable: mailserver.RECIPIENT_DELIMITER
+  label: Subaddress extension separator
+  description: |
+    "Single character only, e.g. john.doe+subname@domain.tld use '+' separator symbol"
+  type: string
+  default: "+"
+
+# postfixadmin configurations
+- variable: postfixadmin.enabled
+  default: "true"
+  description: "If true, create postfixadmin"
+  type: enum
+  group: "Postfixadmin"
+  options:
+    - "true"
+    - "false"
+  label: Enable Postfixadmin
+  show_subquestion_if: true
+  subquestions:
+  - variable: postfixadmin.UID
+    label: postfixadmin user id
+    description: |
+      "postfixadmin user id"
+    type: string
+    required: true
+    default: "991"
+  - variable: postfixadmin.GID
+    label: postfixadmin group id
+    description: |
+      "postfixadmin group id"
+    type: string
+    required: true
+    default: "991"
+  #- variable: postfixadmin.DBDRIVER
+  #  label: Database type
+  #  description: |
+  #    "Database type: mysql, pgsql"
+  #  type: string
+  #  required: true
+  #  default: "mysql"
+  #- variable: postfixadmin.DBHOST
+  #  label: Database instance ip/hostname
+  #  description: |
+  #    "Database instance ip/hostname"
+  #  type: string
+  #  required: true
+  #  default: "mariadb"
+  #- variable: postfixadmin.DBPORT
+  #  label: Database instance port
+  #  description: |
+  #    "Database instance port"
+  #  type: string
+  #  required: true
+  #  default: "3306"
+  #- variable: DBUSER
+  #  label: Database database username
+  #  description: |
+  #    "Database database username"
+  #  type: string
+  #  required: true
+  #  default: "postfix"
+  #- variable: DBNAME
+  #  label: Database database name
+  #  description: |
+  #    "Database database name"
+  #  type: string
+  #  required: true
+  #  default: "postfix"
+  #- variable: DBPASS
+  #  label: Database database password or location of a file containing it
+  #  description: |
+  #    "Database database password or location of a file containing it"
+  #  type: password
+  #  required: true
+  #- variable: postfixadmin.SMTPHOST
+  #  label: SMTP server ip/hostname
+  #  description: |
+  #    "SMTP server ip/hostname"
+  #  type: string
+  #  required: true
+  #  default: "mailserver"
+  #- variable: postfixadmin.DOMAIN
+  #  label: Mail domain
+  #  description: |
+  #    "Mail domain (domain.tld)"
+  #  type: string
+  #  required: true
+  - variable: postfixadmin.ENCRYPTION
+    label: Passwords encryption method
+    description: |
+      "Passwords encryption method"
+    type: string
+    required: true
+    default: "dovecot:SHA512-CRYPT"
+  - variable: postfixadmin.PASSVAL_MIN_LEN
+    label: Passwords validation - minimum password length
+    description: |
+      "Passwords validation: minimum password length"
+    type: int
+    required: true
+    default: 5
+  - variable: postfixadmin.PASSVAL_MIN_CHAR
+    label: Passwords validation - must contain at least characters
+    description: |
+      "Passwords validation: must contain at least characters"
+    type: int
+    required: true
+    default: 3
+  - variable: postfixadmin.PASSVAL_MIN_DIGIT
+    label: Passwords validation - must contain at least digits
+    description: |
+      "Passwords validation: must contain at least digits"
+    type: int
+    required: true
+    default: 2
+
+# rainloop configurations
+- variable: rainloop.enabled
+  default: "true"
+  description: "If true, create rainloop"
+  type: enum
+  group: "Rainloop"
+  options:
+    - "true"
+    - "false"
+  label: Enable Rainloop
+  show_subquestion_if: true
+  subquestions:
+  - variable: rainloop.UID
+    label: rainloop user id
+    description: |
+      "rainloop user id"
+    type: string
+    required: true
+    default: "991"
+  - variable: rainloop.GID
+    label: rainloop group id
+    description: |
+      "rainloop group id"
+    type: string
+    required: true
+    default: "991"
+  - variable: rainloop.UPLOAD_MAX_SIZE
+    label: Attachment size limit
+    description: |
+      "Attachment size limit"
+    type: string
+    required: true
+    default: "25M"
+
+# persistence configurations
+- variable: persistence.enabled
+  default: "false"
+  description: "Enable persistent volume for MongoDB"
+  type: boolean
+  required: true
+  label: MongoDB Persistent Volume Enabled
+  show_subquestion_if: true
+  group: "Persistent Volume"
+  subquestions:
+  - variable: persistence.size
+    default: "8Gi"
+    description: "MongoDB Persistent Volume Size"
+    type: string
+    label: MongoDB Volume Size
+    required: true
+  - variable: persistence.storageClass
+    default: ""
+    description: "If undefined or set to null, using the default storageClass. Defaults to null."
+    type: storageclass
+    label: Storage Class for MongoDB

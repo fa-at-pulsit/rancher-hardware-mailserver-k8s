@@ -1,0 +1,30 @@
+{{- if .Values.mailserver.ingress.enabled }}
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: {{ template "mailserver.fullname" . }}-ingress
+  labels:
+    app: {{ template "mailserver.fullname" . }}-ingress
+  annotations:
+    {{- if .Values.mailserver.ingress.tls }}
+    ingress.kubernetes.io/secure-backends: "true"
+    {{- end }}
+    {{- range $key, $value := .Values.mailserver.ingress.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+spec:
+  rules:
+  - host: {{ .Values.mailserver.ingress.host }}
+    http:
+      paths:
+        - path: {{ default "/" .Values.mailserver.ingress.path }}
+          backend:
+            serviceName: {{ template "mailserver.fullname" . }}
+            servicePort: 11334
+{{- if .Values.mailserver.ingress.tls }}
+  tls:
+  - hosts:
+    - {{ .Values.mailserver.ingress.host }}
+    secretName: {{ .Values.mailserver.ingress.tlsSecret }}
+{{- end }}
+{{- end }}

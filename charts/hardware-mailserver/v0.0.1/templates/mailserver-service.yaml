@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "mailserver.fullname" . }}
+  labels:
+    app: {{ template "mailserver.name" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  type: {{ .Values.mailserver.service.type }}
+  ports:
+    - name: rspamd
+      protocol: TCP
+      port: 11334
+      targetPort: 11334
+    - name: smtp
+      protocol: TCP
+      port: 25
+      targetPort: 25
+    - name: pop3
+      protocol: TCP
+      port: 110
+      targetPort: 110
+    - name: imap
+      protocol: TCP
+      port: 143
+      targetPort: 143
+    - name: smtps
+      protocol: TCP
+      port: 465
+      targetPort: 465
+    - name: submission
+      protocol: TCP
+      port: 587
+      targetPort: 587
+    - name: imaps
+      protocol: TCP
+      port: 993
+      targetPort: 993
+    - name: sieve
+      protocol: TCP
+      port: 4190
+      targetPort: 4190
+  selector:
+    app: {{ template "mailserver.name" . }}

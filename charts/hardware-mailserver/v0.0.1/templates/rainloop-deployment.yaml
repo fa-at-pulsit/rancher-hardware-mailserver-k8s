@@ -1,0 +1,29 @@
+{{- if .Values.rainloop.enabled -}}
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: {{ template "mailserver.rainloop.fullname" . }}
+  labels:
+    app: {{ template "mailserver.rainloop.name" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  template:
+    metadata:
+      labels:
+        app: {{ template "mailserver.rainloop.name" . }}
+    spec:
+      containers:
+      - name: {{ template "mailserver.rainloop.fullname" . }}
+        image: "{{ .Values.rainloop.image.repository }}:{{ .Values.rainloop.image.tag }}"
+        env:
+          - name: UID
+            value: {{default "991" .Values.rainloop.UID | quote }}
+          - name: GID
+            value: {{default "991" .Values.rainloop.GID | quote }}
+          - name: UPLOAD_MAX_SIZE
+            value: {{default "25M" .Values.rainloop.UPLOAD_MAX_SIZE | quote }}
+        ports:
+        - containerPort: 8888
+{{- end }}

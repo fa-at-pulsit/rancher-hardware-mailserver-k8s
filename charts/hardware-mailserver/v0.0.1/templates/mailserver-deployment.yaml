@@ -1,0 +1,126 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: {{ template "mailserver.fullname" . }}
+  labels:
+    app: {{ template "mailserver.name" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    component: "{{ .Values.mailserver.name }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  template:
+    metadata:
+      labels:
+        app: {{ template "mailserver.name" . }}
+    spec:
+      {{- if .Values.mailserver.image.pullSecrets }}
+      imagePullSecrets:
+      {{- range .Values.mailserver.image.pullSecrets }}
+        - name: {{ . }}
+      {{- end }}
+      {{- end }}
+      containers:
+      - name: "{{ .Values.mailserver.name }}"
+        image: "{{ .Values.mailserver.image.repository }}:{{ .Values.mailserver.image.tag }}"
+        imagePullPolicy: {{ .Values.mailserver.image.pullPolicy | quote }}
+        command: ["/bin/sh"]
+        args: ["-c", "sed -i 's/IP=$(dig A ${DBHOST} +short)/IP=$(dig A ${DBHOST} +short +search)/g' /usr/local/bin/run.sh; sed -i 's/IP=$(dig A ${REDIS_HOST} +short)/IP=$(dig A ${REDIS_HOST} +short +search)/g' /usr/local/bin/run.sh; cat /usr/local/bin/run.sh; /usr/local/bin/run.sh"]
+        env:
+        - name: DBHOST
+          value: {{ template "mailserver.mariadb.fullname" . }}
+        - name: DBPASS
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "mailserver.mariadb.fullname" . }}
+              key: mariadb-password
+        - name: DBUSER
+          value: {{ .Values.mailserver.DBUSER | quote }}
+        - name: DBNAME
+          value: {{ .Values.mailserver.DBNAME | quote }}
+        - name: REDIS_HOST
+          value: {{ template "mailserver.redis.fullname" . }}-master
+        - name: REDIS_PASS
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "mailserver.redis.fullname" . }}
+              key: redis-password
+        - name: FQDN
+          value: {{ .Values.mailserver.MAILSERVER_FQDN   | quote }}
+        - name: DOMAIN
+          value: {{ .Values.mailserver.MAILSERVER_DOMAIN | quote }}
+        - name: RSPAMD_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "mailserver.fullname" . }}
+              key: mailserver-rspamd-password
+        - name: RELAY_NETWORKS
+          value: {{ .Values.mailserver.RELAY_NETWORKS | quote }}
+        - name: OPENDKIM_KEY_LENGTH
+          value: {{ default "" .Values.mailserver.OPENDKIM_KEY_LENGTH | quote }}
+        - name: PASSWORD_SCHEME
+          value: {{ default "" .Values.mailserver.PASSWORD_SCHEME | quote }}
+        - name: MAILSERVER_ADD_DOMAIN
+          value: {{ .Values.mailserver.MAILSERVER_ADD_DOMAIN | quote }}
+        - name: DISABLE_RSPAMD_MODULE
+          value: {{ .Values.mailserver.DISABLE_RSPAMD_MODULE | quote }}
+        - name: DISABLE_CLAMAV
+          value: {{ .Values.mailserver.DISABLE_CLAMAV | quote }}
+        - name: DISABLE_DNS_RESOLVER
+          value: {{ .Values.mailserver.DISABLE_DNS_RESOLVER | quote }}
+        - name: DISABLE_GREYLISTING
+          value: {{ .Values.mailserver.DISABLE_GREYLISTING | quote }}
+        - name: DISABLE_RATELIMITING
+          value: {{ .Values.mailserver.DISABLE_RATELIMITING | quote }}
+        - name: DISABLE_SIGNING
+          value: {{ .Values.mailserver.DISABLE_SIGNING | quote }}
+        - name: ENABLE_POP3
+          value: {{ .Values.mailserver.ENABLE_POP3 | quote }}
+        - name: ENABLE_ENCRYPTION
+          value: {{ .Values.mailserver.ENABLE_ENCRYPTION | quote }}
+        - name: ENABLE_FETCHMAIL
+          value: {{ .Values.mailserver.ENABLE_FETCHMAIL | quote }}
+        - name: FETCHMAIL_INTERVAL
+          value: {{ .Values.mailserver.FETCHMAIL_INTERVAL | quote }}
+        ports:
+          - name: rspamd
+            containerPort: 11334
+          - name: smtp
+            containerPort: 25
+          {{- if .Values.mailserver.ENABLE_POP3 }}
+            - name: pop3
+              containerPort: 110
+          {{- end }}
+          - name: imap
+            containerPort: 143
+          - name: smtps
+            containerPort: 465
+          - name: submission
+            containerPort: 587
+          - name: imaps
+            containerPort: 993
+          {{- if .Values.mailserver.ENABLE_POP3 }}
+            - name: pop3s
+              containerPort: 995
+          {{- end }}
+          {{- if .Values.mailserver.DISABLE_SIEVE }}
+            - name: sieve
+              containerPort: 4190
+          {{- end }}
+        volumeMounts:
+          - mountPath: /var/mail
+            name: data
+        #    subPath: mail
+        {{- if .Values.mailserver.MAILSERVER_CUSTOM_SSL }}
+          - mountPath: /etc/letsencrypt
+            name: mailserver-data
+        #    subPath: ssl
+        {{- end}}
+      volumes:
+      - name: data
+      {{- if .Values.mailserver.persistence.enabled }}
+        persistentVolumeClaim:
+          claimName: {{ .Values.mailserver.persistence.existingClaim | default (include "mailserver.fullname" .) }}
+      {{- else }}
+        emptyDir: {}
+      {{- end }}

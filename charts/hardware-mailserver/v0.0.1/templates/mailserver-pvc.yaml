@@ -1,0 +1,24 @@
+{{- if and .Values.mailserver.persistence.enabled (not .Values.mailserver.persistence.existingClaim) }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ template "mailserver.fullname" . }}
+  labels:
+    app: {{ template "fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  accessModes:
+    - {{ .Values.mailserver.persistence.accessMode | quote }}
+  resources:
+    requests:
+      storage: {{ .Values.mailserver.persistence.size | quote }}
+{{- if .Values.mailserver.persistence.storageClass }}
+{{- if (eq "-" .Values.mailserver.persistence.storageClass) }}
+  storageClassName: ""
+{{- else }}
+  storageClassName: "{{ .Values.mailserver.persistence.storageClass }}"
+{{- end }}
+{{- end }}
+{{- end }}

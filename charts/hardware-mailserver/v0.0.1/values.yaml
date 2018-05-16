@@ -1,0 +1,122 @@
+mailserver:
+  name: mailserver
+  nameOverride: mailserver
+  image:
+    repository: hardware/mailserver
+    tag: 1.1-stable
+    pullPolicy: IfNotPresent
+  persistence:
+    enabled: true
+    # existingClaim:
+    # storageClass: "-"
+    accessMode: ReadWriteOnce
+    size: 8Gi
+
+  service:
+    type: NodePort
+  ingress:
+      enabled: true
+      host: xip.io
+      tls: false
+      tlsSecret: app.local-tls
+      annotations:
+      secrets:
+
+postfixadmin:
+  name: postfixadmin
+  nameOverride: postfixadmin
+  enabled: true
+  image:
+    repository: hardware/postfixadmin
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: NodePort
+  ingress:
+    enabled: true
+    host: xip.io
+    tls: false
+    tlsSecret: app.local-tls
+    annotations:
+    secrets:
+
+rainloop:
+  name: rainloop
+  nameOverride: rainloop
+  enabled: true
+  image:
+    repository: hardware/rainloop
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: NodePort
+  ingress:
+    enabled: true
+    host: xip.io
+    tls: false
+    tlsSecret: app.local-tls
+    annotations:
+    secrets:
+
+mariadb:
+  enabled: true
+  mariadbDatabase: postfix
+  mariadbUser: postfix
+  # mariadbPassword:
+  name: mariadb
+  nameOverride: mariadb
+  persistence:
+    enabled: true
+    # existingClaim:
+    subPath: mariad
+    accessMode: ReadWriteOnce
+    size: 8Gi
+
+redis:
+  name: redis
+  nameOverride: redis
+  persistence:
+    enabled: true
+    # existingClaim:
+    subPath: "redis"
+    accessMode: ReadWriteOnce
+    size: 8Gi
+
+
+service:
+  ## Kubernetes service type
+  type: ClusterIP
+
+  ## Specify the nodePort value for the LoadBalancer and NodePort service types.
+  ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#type-nodeport
+  ##
+  # nodePort:
+
+
+
+## Configure resource requests and limits
+## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+##
+resources:
+  requests:
+    memory: 256Mi
+    cpu: 100m
+
+## Node selector
+## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector
+nodeSelector: {}
+
+## Configure extra options for liveness and readiness probes
+## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes)
+livenessProbe:
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+  successThreshold: 1
+readinessProbe:
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+  successThreshold: 1

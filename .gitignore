@@ -1,0 +1,13 @@
+# OS & GUI configuration files:
+local.config.inc.php
+.DS_Store
+.buildpath
+.settings
+/.settings
+.project
+*.swp
+*.tmproj
+ehthumbs.db
+Thumbs.db
+sitemap*
+TMP.php

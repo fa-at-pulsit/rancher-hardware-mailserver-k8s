@@ -1,0 +1,27 @@
+name: hardware-mailserver
+version: 0.0.1
+appVersion: 3.7.3
+description: Simple and full-featured mail server as a set of multiple docker images includes - Postfix, Dovecot, Rspamd, Clamav, Zeyple, Sieve, Fetchmail, Rainloop, Postfixadmin, Unbound, NSD, Traefik, SSL
+keywords:
+  - mailserver
+  - postfix
+  - dovecot
+  - rspamd
+  - clamav
+  - zeyple
+  - sieve
+  - fetchmail
+  - rainloop
+  - postfixadmin
+  - unbound
+  - nsd
+  - traefik
+  - ssl
+home: https://github.com/hardware/mailserver
+icon: https://avatars2.githubusercontent.com/u/327354?s=460&v=4
+sources:
+  - https://github.com/hardware/mailserver
+maintainers:
+- name: pulsIT
+  email: fa@pulsit.net
+engine: gotpl
