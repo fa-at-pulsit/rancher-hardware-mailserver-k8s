@@ -382,25 +382,3 @@ questions:
     type: string
     required: true
     default: "25M"
-
-# persistence configurations
-- variable: persistence.enabled
-  default: "false"
-  description: "Enable persistent volume for MongoDB"
-  type: boolean
-  required: true
-  label: MongoDB Persistent Volume Enabled
-  show_subquestion_if: true
-  group: "Persistent Volume"
-  subquestions:
-  - variable: persistence.size
-    default: "8Gi"
-    description: "MongoDB Persistent Volume Size"
-    type: string
-    label: MongoDB Volume Size
-    required: true
-  - variable: persistence.storageClass
-    default: ""
-    description: "If undefined or set to null, using the default storageClass. Defaults to null."
-    type: storageclass
-    label: Storage Class for MongoDB
